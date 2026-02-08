@@ -32,6 +32,10 @@ app.use(
 // CORS
 app.use(cors());
 
+// Body parsing
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
@@ -43,10 +47,6 @@ app.use(hpp());
 
 // Request logging middleware
 app.use(requestLogger);
-
-// Body parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "../public")));
