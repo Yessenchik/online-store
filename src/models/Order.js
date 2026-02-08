@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const { generateOrderNumber, constraints, createRef } = require('./modelUtils');
 
+// TODO: Move complex request-level validations (e.g., address format, payment method checks) 
+// to middleware to keep the model focused on data persistence.
+
 //embedded order item schema
 const orderItemSchema = new mongoose.Schema({
     product: createRef('Product'),
@@ -84,7 +87,7 @@ orderSchema.index({ order_status: 1 });
 orderSchema.index({ created_at: -1 });
 
 //generate order number before saving
-orderSchema.pre('validate', async function(next) {
+orderSchema.pre('validate', async function (next) {
     if (!this.order_number) {
         this.order_number = generateOrderNumber();
     }

@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const { constraints, createRef } = require('./modelUtils');
 
+// TODO: Consider moving comment length and rating range validation to request middleware 
+// to provide immediate feedback to users and sanitize input before it reaches the model.
+
 const reviewSchema = new mongoose.Schema({
     //referenced user
     user: createRef('User'),
@@ -37,7 +40,7 @@ reviewSchema.index({ user: 1, product: 1 }, { unique: true }); //one review per 
 reviewSchema.index({ product: 1, created_at: -1 });
 
 //static method to calculate product rating
-reviewSchema.statics.calculateProductRating = async function(productId) {
+reviewSchema.statics.calculateProductRating = async function (productId) {
     const stats = await this.aggregate([
         {
             $match: { product: productId }
@@ -61,12 +64,12 @@ reviewSchema.statics.calculateProductRating = async function(productId) {
 };
 
 //update product rating after save
-reviewSchema.post('save', function() {
+reviewSchema.post('save', function () {
     this.constructor.calculateProductRating(this.product);
 });
 
 //update product rating after delete
-reviewSchema.post('remove', function() {
+reviewSchema.post('remove', function () {
     this.constructor.calculateProductRating(this.product);
 });
 

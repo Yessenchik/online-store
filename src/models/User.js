@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema({
         unique: true,
         lowercase: true,
         trim: true,
+        // TODO: Move complex email validation and sanitization to middleware
         validate: [validators.email.regex, validators.email.message]
     },
     password: {
@@ -73,17 +74,17 @@ userSchema.index({ email: 1, is_active: 1 });
 userSchema.index({ role: 1, created_at: -1 });
 
 //hash password before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
     await hashPasswordHook.call(this, next, bcrypt);
 });
 
 //method to compare passwords
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
     return await comparePasswordMethod.call(this, candidatePassword, bcrypt);
 };
 
 //method to get public profile
-userSchema.methods.toPublicJSON = function() {
+userSchema.methods.toPublicJSON = function () {
     return toPublicJSON.call(this);
 };
 

@@ -1,4 +1,6 @@
-//common validation regex patterns
+// NOTE: These are basic database-level regex validators.
+// TODO: Implement a dedicated validation middleware (using express-validator or Joi) 
+// to handle request-level validation, input sanitization, and more complex business rules.
 const validators = {
     email: {
         regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -10,7 +12,8 @@ const validators = {
     }
 };
 
-//common field constraints
+// TODO: Move these constants to a shared config or use them in validation middleware 
+// to ensure consistency between API responses and database constraints.
 const constraints = {
     minName: 2,
     minPassword: 4,
@@ -43,7 +46,7 @@ const buildCompoundIndex = (fields) => {
 };
 
 //common pre-save hook for hashing passwords
-const hashPasswordHook = async function(next, bcrypt) {
+const hashPasswordHook = async function (next, bcrypt) {
     if (!this.isModified('password')) return next();
 
     try {
@@ -56,12 +59,12 @@ const hashPasswordHook = async function(next, bcrypt) {
 };
 
 //common method to compare passwords
-const comparePasswordMethod = async function(candidatePassword, bcrypt) {
+const comparePasswordMethod = async function (candidatePassword, bcrypt) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
 //common method to remove sensitive fields
-const toPublicJSON = function() {
+const toPublicJSON = function () {
     const obj = this.toObject();
     delete obj.password;
     return obj;
