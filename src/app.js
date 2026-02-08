@@ -1,32 +1,32 @@
-const express = require("express");
-const path = require("path");
-const helmet = require("helmet");
-const mongoSanitize = require("express-mongo-sanitize");
-const xss = require("xss-clean");
-const hpp = require("hpp");
-const cors = require("cors");
+const express = require('express');
+const path = require('path');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
+const cors = require('cors');
 
-const routes = require("./routes");
-const { errorHandler, notFoundHandler } = require("./middleware/error.middleware");
-const { requestLogger } = require("./utils/logger");
+const routes = require('./routes');
+const { errorHandler, notFoundHandler } = require('./middleware/error.middleware');
+const { requestLogger } = require('./utils/logger');
 
 const app = express();
 
 // Security HTTP headers
 app.use(
-    helmet({
-        contentSecurityPolicy: {
-            directives: {
-                defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
-                scriptSrcAttr: ["'unsafe-inline'"],
-                styleSrc: ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'"],
-                fontSrc: ["'self'", "https://fonts.gstatic.com"],
-                imgSrc: ["'self'", "data:", "blob:", "https://picsum.photos", "https://fastly.picsum.photos"],
-                connectSrc: ["'self'"],
-            },
-        },
-    })
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', "'unsafe-inline'"],
+        scriptSrcAttr: ["'unsafe-inline'"],
+        styleSrc: ["'self'", 'https://fonts.googleapis.com', "'unsafe-inline'"],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://picsum.photos', 'https://fastly.picsum.photos'],
+        connectSrc: ["'self'"],
+      },
+    },
+  })
 );
 
 // CORS
@@ -56,7 +56,7 @@ app.use(requestLogger);
  */
 
 // Serve static files
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
 app.use(routes);

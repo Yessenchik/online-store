@@ -1,11 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {
-    getProductReviews,
-    createReview,
-    updateReview,
-    deleteReview
-} = require('../controllers/reviewController');
+const { getProductReviews, createReview, updateReview, deleteReview } = require('../controllers/reviewController');
 const { protect } = require('../middleware/auth');
 
 //public route for getting reviews by product

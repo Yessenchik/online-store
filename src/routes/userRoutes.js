@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const {
-    getUserProfile,
-    updateUserProfile,
-    addAddress,
-    updateAddress,
-    removeAddress,
-    addToCart,
-    removeFromCart,
-    clearCart
+  getUserProfile,
+  updateUserProfile,
+  addAddress,
+  updateAddress,
+  removeAddress,
+  addToCart,
+  removeFromCart,
+  clearCart,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/auth');
 

@@ -1,4 +1,41 @@
+# Dependencies
 node_modules/
+
+# Debug logs
 logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory
+coverage
+*.lcov
+.nyc_output
+
+# Local environment variables
 .env
-.idea
+.env.local
+.env.test.local
+.env.production.local
+
+# Build/Dist (if applicable)
+dist/
+build/
+
+# IDE/Editor files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS metadata
+.DS_Store
+Thumbs.db

@@ -2,9 +2,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: ['master', 'main']
   pull_request:
-    branches: [ "master", "main" ]
+    branches: ['master', 'main']
 
 jobs:
   test:
@@ -21,21 +21,21 @@ jobs:
           - 27017:27017
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm install
-      
-    - name: Run tests
-      run: npm test
-      env:
-        MONGODB_URI: mongodb://localhost:27017/web_final_test
-        JWT_TOKEN: testsecret
-        NODE_ENV: test
-        LOG_LEVEL: error
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+        env:
+          MONGODB_URI: mongodb://localhost:27017/web_final_test
+          JWT_TOKEN: testsecret
+          NODE_ENV: test
+          LOG_LEVEL: error

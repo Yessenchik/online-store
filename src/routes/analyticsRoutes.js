@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const {
-    getProductStats,
-    getTopRatedProducts,
-    getSalesAnalytics,
-    getSalesTimeSeries,
-    getUserOrderHistory,
-    getReviewStats,
-    getOrderStatusStats
+  getProductStats,
+  getTopRatedProducts,
+  getSalesAnalytics,
+  getSalesTimeSeries,
+  getUserOrderHistory,
+  getReviewStats,
+  getOrderStatusStats,
 } = require('../controllers/analyticsController');
 const { protect, restrictTo } = require('../middleware/auth');
 
