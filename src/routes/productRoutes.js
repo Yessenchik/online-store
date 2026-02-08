@@ -12,6 +12,8 @@ const {
 } = require('../controllers/productController');
 const { protect, restrictTo, optionalAuth } = require('../middleware/auth');
 
+// TODO: Add validation middleware for product creation/updates
+
 //public routes
 router.get('/', optionalAuth, getProducts);
 router.get('/:id', getProduct);

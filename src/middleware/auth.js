@@ -12,6 +12,7 @@ const extractToken = (req) => {
 
 //verify token and get user
 const verifyTokenAndGetUser = async (token) => {
+    // SECURITY: Validate that JWT_TOKEN is set in environment variables to prevent using a default/empty secret
     const decoded = jwt.verify(token, process.env.JWT_TOKEN);
     return await User.findById(decoded.id).select('-password');
 };

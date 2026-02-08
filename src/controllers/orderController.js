@@ -32,13 +32,15 @@ const canAccessOrder = (order, userId, userRole) => {
     return order.user._id.toString() === userId.toString() || userRole === 'admin';
 };
 
-//desc - create new order
-//route - post /api/orders
-//access - private
+// TODO: Refactor large order creation logic into a Transaction to ensure Atomicity
+// desc - create new order
+// route - post /api/orders
+// access - private
 exports.createOrder = async (req, res) => {
     try {
         const { items, shippingAddress, paymentMethod, pricing } = req.body;
 
+        // SECURITY: Sanitize pricing data from request body to ensure it matches product calculations
         if (!items || items.length === 0) {
             return sendError(res, 400, 'No order items provided');
         }

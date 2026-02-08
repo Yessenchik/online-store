@@ -16,7 +16,8 @@ exports.getProducts = async (req, res) => {
             limit = 12
         } = req.query;
 
-        //build query
+        // OPTIMIZE: Validate 'sort' field against allowed fields to prevent unexpected query behavior
+        // build query
         const query = {};
         const includeInactive = req.user?.role === 'admin' && String(req.query.includeInactive).toLowerCase() === 'true';
 
@@ -75,6 +76,7 @@ exports.getProduct = async (req, res) => {
 //access - private/admin
 exports.createProduct = async (req, res) => {
     try {
+        // SECURITY: Validate req.body content before creation to prevent injection of unallowed fields (e.g., set admin status)
         const product = await Product.create(req.body);
 
         return sendSuccess(res, product, 'Product created successfully', null, 201);
@@ -90,6 +92,7 @@ exports.updateProduct = async (req, res) => {
     try {
         const product = await Product.findByIdAndUpdate(
             req.params.id,
+            // SECURITY: Use a whitelist of allowed updates instead of spreading req.body
             { $set: req.body },
             {
                 new: true,

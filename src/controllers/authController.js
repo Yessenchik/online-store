@@ -4,6 +4,8 @@ const { sendError, sendSuccess, handleValidationError } = require('./responseUti
 
 //generate jwt token
 const generateToken = (id) => {
+    // SECURITY: Use a more secure secret from environment variables with a fallback check
+    // OPTIMIZE: Consider a shorter expiration time for better security (e.g., 1h or 24h)
     return jwt.sign({ id }, process.env.JWT_TOKEN, {
         expiresIn: '30d'
     });
@@ -33,6 +35,7 @@ exports.register = async (req, res) => {
         }
 
         //validate password length
+        // SECURITY: Implement stronger password requirements (e.g., min 8 chars, mixed case, special chars)
         if (password.length < 4) {
             return sendError(res, 400, 'Password must be at least 4 characters long');
         }

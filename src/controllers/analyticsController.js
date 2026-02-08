@@ -27,6 +27,7 @@ const buildDateRangeMatchStage = (startDate, endDate, excludeCancelled = true) =
 //access - private/admin
 exports.getProductStats = async (req, res) => {
     try {
+        // OPTIMIZE: These calculations could be heavy. Consider caching the results (e.g., Redis) or running them on a separate schedule.
         const stats = await Product.aggregate([
             {
                 $match: { is_active: true }

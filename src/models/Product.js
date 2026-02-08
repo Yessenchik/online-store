@@ -46,6 +46,7 @@ const productSchema = new mongoose.Schema({
         min: [0, 'Stock cannot be negative'],
         default: 0
     },
+    // OPTIMIZE: Limit max number of images per product to prevent large payload attacks
     images: [{ type: String }], //array of image urls
     brand: {
         type: String,

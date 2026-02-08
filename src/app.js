@@ -48,6 +48,13 @@ app.use(hpp());
 // Request logging middleware
 app.use(requestLogger);
 
+/**
+ * TODO: Missing:
+ * 1. express-rate-limit (Rate limiting for auth/API routes)
+ * 2. sanitize-html (For sanitizing HTML input in descriptions/reviews)
+ * 3. Dedicated validation middleware layer
+ */
+
 // Serve static files
 app.use(express.static(path.join(__dirname, "../public")));
 
