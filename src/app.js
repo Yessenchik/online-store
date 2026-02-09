@@ -20,8 +20,8 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', "'unsafe-inline'"],
         scriptSrcAttr: ["'unsafe-inline'"],
-        styleSrc: ["'self'", 'https://fonts.googleapis.com', "'unsafe-inline'"],
-        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        styleSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://fonts.googleapis.com', "'unsafe-inline'"],
+        fontSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://fonts.gstatic.com'],
         imgSrc: ["'self'", 'data:', 'blob:', 'https://picsum.photos', 'https://fastly.picsum.photos'],
         connectSrc: ["'self'"],
       },
@@ -55,8 +55,13 @@ app.use(requestLogger);
  * 3. Dedicated validation middleware layer
  */
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '../public')));
+// Serve static files with automatic extension resolution (.html, .htm)
+const htmlDir = path.join(__dirname, '../public');
+app.use(
+  express.static(htmlDir, {
+    extensions: ['html', 'htm'], // Automatically tries to match requests to .html or .htm files
+  })
+);
 
 // Routes
 app.use(routes);

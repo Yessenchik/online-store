@@ -4,169 +4,243 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Analytics - Cases Store</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css" />
   </head>
-  <body>
+  <body class="bg-light">
     <!-- Navigation -->
-    <nav class="navbar">
-      <div class="container">
-        <div class="nav-brand">
-          <h1>Cases Store</h1>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold" href="/">Cases Store Admin</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item">
+              <a class="nav-link active" href="/admin.html">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/products.html">Storefront</a>
+            </li>
+            <li class="nav-item ms-3" id="user-name-display" style="display: none">
+              <span class="nav-link fw-bold text-white"></span>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" id="logout-link">Logout</a>
+            </li>
+          </ul>
         </div>
-        <ul class="nav-menu">
-          <li><a href="/admin.html" id="admin-link" class="active">Admin</a></li>
-          <li
-            id="user-name-display"
-            style="display: none; color: var(--dark-color); font-weight: 700; font-size: 1.1em"
-          ></li>
-          <li><a href="#" id="logout-link">Logout</a></li>
-        </ul>
       </div>
     </nav>
 
-    <section class="section">
-      <div class="container">
-        <h2>Admin Analytics</h2>
+    <div class="container-fluid px-4 pb-5" style="margin-top: 80px">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Analytics Dashboard</h2>
+        <div class="d-flex gap-2">
+          <select id="admin-interval" class="form-select form-select-sm" style="width: auto">
+            <option value="day">Daily</option>
+            <option value="month">Monthly</option>
+          </select>
+          <select id="admin-metric" class="form-select form-select-sm" style="width: auto">
+            <option value="revenue">Revenue</option>
+            <option value="orders">Orders</option>
+          </select>
+        </div>
+      </div>
 
-        <div class="card">
-          <h3>Filters</h3>
-          <div class="filters admin-filters">
-            <div class="filter-group">
-              <label for="admin-interval">Interval</label>
-              <select id="admin-interval" class="filter-select">
-                <option value="day">Daily</option>
-                <option value="month">Monthly</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="admin-metric">Metric</label>
-              <select id="admin-metric" class="filter-select">
-                <option value="revenue">Revenue</option>
-                <option value="orders">Orders</option>
-              </select>
+      <!-- Stats Cards -->
+      <div class="row g-4 mb-4" id="admin-summary">
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h6 class="text-muted text-uppercase mb-2">Total Orders</h6>
+              <div class="display-6 fw-bold text-primary" id="summary-total-orders">0</div>
             </div>
           </div>
         </div>
-
-        <div class="card">
-          <h3>Summary</h3>
-          <div id="admin-summary" class="stat-grid">
-            <div class="stat-card">
-              <div class="stat-label">Total Orders</div>
-              <div class="stat-value" id="summary-total-orders">0</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Total Revenue</div>
-              <div class="stat-value" id="summary-total-revenue">$0.00</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Avg Order</div>
-              <div class="stat-value" id="summary-avg-order">$0.00</div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h6 class="text-muted text-uppercase mb-2">Total Revenue</h6>
+              <div class="display-6 fw-bold text-success" id="summary-total-revenue">$0.00</div>
             </div>
           </div>
         </div>
-
-        <div class="admin-chart-grid">
-          <div class="card">
-            <h3>Sales Over Time</h3>
-            <canvas id="chart-sales-timeseries" height="180"></canvas>
-          </div>
-          <div class="card">
-            <h3>Orders by Status</h3>
-            <canvas id="chart-order-status" height="180"></canvas>
-          </div>
-          <div class="card">
-            <h3>Top Products by Revenue</h3>
-            <canvas id="chart-top-products" height="180"></canvas>
-          </div>
-          <div class="card">
-            <h3>Total Sold by Category</h3>
-            <canvas id="chart-category-sold" height="180"></canvas>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>All Orders</h3>
-          <div id="admin-orders" class="admin-list">
-            <div class="loading">Loading orders...</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Products</h3>
-          <form id="admin-product-form" class="admin-product-form">
-            <div class="admin-product-fields">
-              <label class="admin-field">
-                <span>Name</span>
-                <input class="filter-input" id="admin-product-name" required />
-              </label>
-              <label class="admin-field">
-                <span>Price</span>
-                <input class="filter-input" id="admin-product-price" type="number" step="0.01" min="0" required />
-              </label>
-              <label class="admin-field">
-                <span>Category</span>
-                <select class="filter-select" id="admin-product-category" required>
-                  <option value="phone-case">Phone case</option>
-                  <option value="laptop-case">Laptop case</option>
-                  <option value="tablet-case">Tablet case</option>
-                  <option value="watch-case">Watch case</option>
-                  <option value="accessory">Accessory</option>
-                </select>
-              </label>
-              <label class="admin-field">
-                <span>Stock</span>
-                <input class="filter-input" id="admin-product-stock" type="number" min="0" value="0" required />
-              </label>
-              <label class="admin-field">
-                <span>Brand</span>
-                <input class="filter-input" id="admin-product-brand" />
-              </label>
-              <label class="admin-field">
-                <span>Material</span>
-                <input class="filter-input" id="admin-product-material" />
-              </label>
-              <label class="admin-field">
-                <span>Color</span>
-                <input class="filter-input" id="admin-product-color" />
-              </label>
-              <label class="admin-field admin-field-wide">
-                <span>Description</span>
-                <textarea class="filter-input" id="admin-product-description" rows="3" required></textarea>
-              </label>
-              <label class="admin-field admin-field-wide">
-                <span>Tags (comma separated)</span>
-                <input class="filter-input" id="admin-product-tags" placeholder="tag1, tag2" />
-              </label>
-              <label class="admin-field admin-field-wide">
-                <span>Image URLs (comma separated)</span>
-                <input class="filter-input" id="admin-product-images" placeholder="https://..." />
-              </label>
-              <label class="admin-field admin-field-wide">
-                <span>Compatible models (JSON array)</span>
-                <textarea
-                  class="filter-input"
-                  id="admin-product-models"
-                  rows="3"
-                  placeholder='[{"brand":"Apple","model_name":"iPhone 15","release_year":2023}]'
-                ></textarea>
-              </label>
-              <label class="admin-field admin-field-checkbox">
-                <span>Active</span>
-                <input type="checkbox" id="admin-product-active" checked />
-              </label>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h6 class="text-muted text-uppercase mb-2">Avg Order Value</h6>
+              <div class="display-6 fw-bold text-info" id="summary-avg-order">$0.00</div>
             </div>
-            <div class="admin-row-actions">
-              <button type="submit" class="btn btn-primary">Create Product</button>
-            </div>
-          </form>
-          <div id="admin-products" class="admin-list">
-            <div class="loading">Loading products...</div>
           </div>
         </div>
       </div>
-    </section>
 
+      <!-- Charts -->
+      <div class="row g-4 mb-4">
+        <div class="col-xl-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom py-3">
+              <h5 class="mb-0 fw-bold">Sales Over Time</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="chart-sales-timeseries" height="250"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom py-3">
+              <h5 class="mb-0 fw-bold">Orders by Status</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="chart-order-status" height="250"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom py-3">
+              <h5 class="mb-0 fw-bold">Sold by Category</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="chart-category-sold" height="250"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom py-3">
+              <h5 class="mb-0 fw-bold">Top Products by Revenue</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="chart-top-products" height="100"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Recent Orders -->
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+              <h5 class="mb-0 fw-bold">Recent Orders</h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <div id="admin-orders">
+                  <!-- Injected via JS -->
+                  <div class="p-4 text-center">Loading orders...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Management -->
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+              <h5 class="mb-0 fw-bold">Product Management</h5>
+            </div>
+            <div class="card-body">
+              <!-- Create Product Form -->
+              <div class="bg-light p-4 rounded mb-4">
+                <h6 class="fw-bold mb-3">Create New Product</h6>
+                <form id="admin-product-form">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Name</label>
+                      <input class="form-control" id="admin-product-name" required />
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Price</label>
+                      <input class="form-control" id="admin-product-price" type="number" step="0.01" min="0" required />
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Category</label>
+                      <select class="form-select" id="admin-product-category" required>
+                        <option value="phone-case">Phone case</option>
+                        <option value="laptop-case">Laptop case</option>
+                        <option value="tablet-case">Tablet case</option>
+                        <option value="watch-case">Watch case</option>
+                        <option value="accessory">Accessory</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Stock</label>
+                      <input class="form-control" id="admin-product-stock" type="number" min="0" value="0" required />
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Brand</label>
+                      <input class="form-control" id="admin-product-brand" />
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Material</label>
+                      <input class="form-control" id="admin-product-material" />
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Color</label>
+                      <input class="form-control" id="admin-product-color" />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                      <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="admin-product-active" checked />
+                        <label class="form-check-label" for="admin-product-active">Active</label>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">Description</label>
+                      <textarea class="form-control" id="admin-product-description" rows="3" required></textarea>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Tags (comma separated)</label>
+                      <input class="form-control" id="admin-product-tags" placeholder="tag1, tag2" />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Image URLs (comma separated)</label>
+                      <input class="form-control" id="admin-product-images" placeholder="https://..." />
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">Compatible models (JSON array)</label>
+                      <textarea
+                        class="form-control"
+                        id="admin-product-models"
+                        rows="2"
+                        placeholder='[{"brand":"Apple","model_name":"iPhone 15","release_year":2023}]'
+                      ></textarea>
+                    </div>
+                    <div class="col-12">
+                      <button type="submit" class="btn btn-primary">Create Product</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Products List -->
+              <div id="admin-products">
+                <div class="text-center py-4">Loading products...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/api.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/utils.js"></script>

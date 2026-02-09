@@ -4,44 +4,72 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Products - Cases Store</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body>
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top bg-surface shadow-sm">
       <div class="container">
-        <div class="nav-brand">
-          <h1>Cases Store</h1>
+        <a class="navbar-brand" href="/">Cases Store</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item">
+              <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="/products.html">Products</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/cart.html">
+                Cart <span id="cart-count" class="badge bg-primary rounded-pill">0</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/dashboard.html" id="dashboard-link" style="display: none">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin.html" id="admin-link" style="display: none">Admin</a>
+            </li>
+            <li class="nav-item ms-lg-3" id="user-name-display" style="display: none">
+              <span class="nav-link text-primary fw-bold"></span>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/login.html" id="auth-link">Login</a>
+            </li>
+          </ul>
         </div>
-        <ul class="nav-menu">
-          <li><a href="/">Home</a></li>
-          <li><a href="/products.html" class="active">Products</a></li>
-          <li>
-            <a href="/cart.html">Cart <span id="cart-count" class="badge">0</span></a>
-          </li>
-          <li><a href="/dashboard.html" id="dashboard-link" style="display: none">Dashboard</a></li>
-          <li><a href="/admin.html" id="admin-link" style="display: none">Admin</a></li>
-          <li
-            id="user-name-display"
-            style="display: none; color: var(--dark-color); font-weight: 700; font-size: 1.1em"
-          ></li>
-          <li><a href="/login.html" id="auth-link">Login</a></li>
-        </ul>
       </div>
     </nav>
 
     <!-- Products Section -->
-    <section class="section">
-      <div class="container">
-        <div class="section-header">
-          <h2>All Products</h2>
+    <section class="section" style="margin-top: 56px">
+      <div class="container py-5">
+        <div class="row mb-5">
+          <div class="col-12 text-center">
+            <h2 class="fw-bold display-5 mb-3">All Products</h2>
+            <p class="text-muted lead">Explore our premium collection of cases and accessories</p>
+          </div>
         </div>
 
         <!-- Filters -->
-        <div class="filters">
-          <div class="filter-group">
-            <label for="category">Category:</label>
-            <select id="category" class="filter-select">
+        <div class="row g-3 mb-5 p-4 bg-light rounded shadow-sm align-items-end">
+          <div class="col-md-4 col-lg-3">
+            <label for="category" class="form-label fw-bold small text-uppercase text-muted">Category</label>
+            <select id="category" class="form-select">
               <option value="">All Categories</option>
               <option value="phone-case">Phone Cases</option>
               <option value="laptop-case">Laptop Cases</option>
@@ -51,9 +79,9 @@
             </select>
           </div>
 
-          <div class="filter-group">
-            <label for="sort">Sort By:</label>
-            <select id="sort" class="filter-select">
+          <div class="col-md-4 col-lg-3">
+            <label for="sort" class="form-label fw-bold small text-uppercase text-muted">Sort By</label>
+            <select id="sort" class="form-select">
               <option value="-createdAt">Newest</option>
               <option value="price">Price: Low to High</option>
               <option value="-price">Price: High to Low</option>
@@ -62,22 +90,82 @@
             </select>
           </div>
 
-          <div class="filter-group">
-            <label for="search">Search:</label>
-            <input type="text" id="search" class="filter-input" placeholder="Search products..." />
+          <div class="col-md-4 col-lg-6">
+            <label for="search" class="form-label fw-bold small text-uppercase text-muted">Search</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0"><i class="ri-search-line"></i></span>
+              <input
+                type="text"
+                id="search"
+                class="form-control border-start-0 ps-0 text-muted"
+                placeholder="Search products..."
+              />
+            </div>
           </div>
         </div>
 
         <!-- Products Grid -->
-        <div id="products-container" class="product-grid">
-          <div class="loading">Loading products...</div>
+        <div id="products-container" class="row g-4">
+          <div class="col-12 text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
         </div>
 
         <!-- Pagination -->
-        <div id="pagination" class="pagination"></div>
+        <nav aria-label="Page navigation" class="mt-5">
+          <ul id="pagination" class="pagination justify-content-center">
+            <!-- Pagination items will be injected here -->
+          </ul>
+        </nav>
       </div>
     </section>
 
+    <!-- Footer -->
+    <footer class="bg-white py-5 border-top mt-5">
+      <div class="container">
+        <div class="row gy-4">
+          <div class="col-lg-4">
+            <h4 class="text-primary fw-bold mb-3">Cases Store</h4>
+            <p class="text-muted">
+              Premium protection for your digital life. We source the best materials to ensure your devices stay safe
+              and stylish.
+            </p>
+          </div>
+          <div class="col-lg-2 col-6">
+            <h6 class="fw-bold mb-3">Shop</h6>
+            <ul class="list-unstyled">
+              <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-primary">All Products</a></li>
+              <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-primary">Phone Cases</a></li>
+              <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-primary">Laptop Sleeves</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-2 col-6">
+            <h6 class="fw-bold mb-3">Support</h6>
+            <ul class="list-unstyled">
+              <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-primary">Contact Us</a></li>
+              <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-primary">FAQs</a></li>
+              <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-primary">Shipping</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-4">
+            <h6 class="fw-bold mb-3">Newsletter</h6>
+            <p class="text-muted small">Subscribe to get special offers and updates.</p>
+            <form class="d-flex gap-2">
+              <input type="email" class="form-control" placeholder="Enter your email" />
+              <button class="btn btn-primary" type="submit">Subscribe</button>
+            </form>
+          </div>
+        </div>
+        <div class="border-top mt-5 pt-4 text-center text-muted small">
+          &copy; 2024 Cases Store. All rights reserved.
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/api.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/utils.js"></script>

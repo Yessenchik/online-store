@@ -57,6 +57,7 @@ async function loadAdminAnalytics() {
     renderCategoryChart(productStatsResult.data || []);
   } catch (error) {
     console.error('Error loading admin analytics:', error);
+    showAlert('Error loading analytics', 'error');
   }
 }
 
@@ -98,8 +99,8 @@ function renderSalesChart(series, metric) {
         {
           label,
           data: values,
-          borderColor: '#3498db',
-          backgroundColor: 'rgba(52, 152, 219, 0.2)',
+          borderColor: '#0d6efd',
+          backgroundColor: 'rgba(13, 110, 253, 0.1)',
           tension: 0.3,
           fill: true,
         },
@@ -107,6 +108,7 @@ function renderSalesChart(series, metric) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       scales: {
         y: {
           ticks: {
@@ -131,21 +133,22 @@ function renderStatusChart(stats) {
 
   if (statusChart) statusChart.destroy();
   statusChart = new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
       labels,
       datasets: [
         {
           label: 'Orders',
           data: values,
-          backgroundColor: '#2ecc71',
+          backgroundColor: ['#198754', '#0dcaf0', '#ffc107', '#dc3545', '#6c757d'],
         },
       ],
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: { position: 'bottom' },
       },
     },
   });
@@ -170,12 +173,13 @@ function renderTopProductsChart(products) {
         {
           label: 'Revenue',
           data: values,
-          backgroundColor: '#9b59b6',
+          backgroundColor: '#6610f2',
         },
       ],
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
       },
@@ -199,21 +203,22 @@ function renderCategoryChart(stats) {
 
   if (categoryChart) categoryChart.destroy();
   categoryChart = new Chart(ctx, {
-    type: 'bar',
+    type: 'pie',
     data: {
       labels,
       datasets: [
         {
           label: 'Units Sold',
           data: values,
-          backgroundColor: '#f39c12',
+          backgroundColor: ['#fd7e14', '#20c997', '#d63384', '#6f42c1', '#adb5bd'],
         },
       ],
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: { position: 'bottom' },
       },
     },
   });
@@ -223,7 +228,8 @@ async function loadAdminOrders() {
   const container = document.getElementById('admin-orders');
   if (!container) return;
 
-  container.innerHTML = '<div class="loading">Loading orders...</div>';
+  container.innerHTML =
+    '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
 
   try {
     const result = await api.getAllOrders({ limit: 50 }, authToken);
@@ -234,24 +240,48 @@ async function loadAdminOrders() {
       return;
     }
 
-    container.innerHTML = orders
+    // Generate table structure
+    let tableHtml = `
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Order #</th>
+            <th>User</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    tableHtml += orders
       .map(
         (order) => `
-            <div class="admin-row" data-order-id="${order._id}">
-                <div>
-                    <div class="admin-row-title">${order.order_number || order.orderNumber}</div>
-                    <div class="admin-row-sub">${order.user?.name || 'User'} • ${formatPrice(order.pricing?.total || 0)}</div>
-                </div>
-                <div class="admin-row-actions">
-                    <select class="filter-select" data-role="status">
-                        ${renderStatusOptions(order.order_status)}
-                    </select>
-                    <button class="btn btn-primary" data-action="update-order">Update</button>
-                </div>
-            </div>
-        `
+        <tr class="admin-row" data-order-id="${order._id}">
+            <td class="fw-bold text-primary">#${order.order_number || order.orderNumber || order._id.slice(-6)}</td>
+            <td>
+                <div>${order.user?.name || 'Unknown User'}</div>
+                <small class="text-muted">${order.user?.email || ''}</small>
+            </td>
+            <td>${formatDate(order.createdAt)}</td>
+            <td class="fw-bold">${formatPrice(order.pricing?.total || 0)}</td>
+            <td>
+                 <select class="form-select form-select-sm" data-role="status" style="width: 140px;">
+                    ${renderStatusOptions(order.order_status)}
+                </select>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" data-action="update-order">Update</button>
+            </td>
+        </tr>
+    `
       )
       .join('');
+
+    tableHtml += '</tbody></table>';
+    container.innerHTML = tableHtml;
   } catch (error) {
     console.error('Error loading orders:', error);
     setListMessage(container, 'Error loading orders', true);
@@ -263,7 +293,7 @@ function renderStatusOptions(current) {
   return statuses
     .map(
       (status) => `
-        <option value="${status}" ${status === current ? 'selected' : ''}>${status}</option>
+        <option value="${status}" ${status === current ? 'selected' : ''}>${status.charAt(0).toUpperCase() + status.slice(1)}</option>
     `
     )
     .join('');
@@ -273,19 +303,27 @@ async function handleOrderAction(event) {
   const action = event.target?.dataset?.action;
   if (action !== 'update-order') return;
 
-  const row = event.target.closest('.admin-row');
+  const row = event.target.closest('tr');
   const orderId = row?.dataset?.orderId;
-  const status = row?.querySelector('[data-role="status"]')?.value;
+  const statusSelect = row?.querySelector('[data-role="status"]');
+  const status = statusSelect?.value;
 
   if (!orderId || !status) return;
+
+  const btn = event.target;
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '...';
 
   try {
     await api.updateOrderStatus(orderId, { orderStatus: status }, authToken);
     showAlert('Order status updated', 'success');
-    await loadAdminOrders();
   } catch (error) {
     console.error('Error updating order:', error);
     showAlert(error.message || 'Error updating order', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
   }
 }
 
@@ -293,7 +331,8 @@ async function loadAdminProducts() {
   const container = document.getElementById('admin-products');
   if (!container) return;
 
-  container.innerHTML = '<div class="loading">Loading products...</div>';
+  container.innerHTML =
+    '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
 
   try {
     const result = await api.getProducts({ limit: 50, includeInactive: 'true' }, authToken);
@@ -307,73 +346,64 @@ async function loadAdminProducts() {
     container.innerHTML = products
       .map(
         (product) => `
-            <div class="admin-product-card" data-product-id="${product._id}">
-                <div class="admin-product-media">
-                    ${product.images?.[0] ? `<img src="${product.images[0]}" alt="${escapeHtml(product.name)}">` : '<div class="admin-product-placeholder">No image</div>'}
+            <div class="card mb-3 admin-product-card" data-product-id="${product._id}">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+                    <span class="badge bg-light text-dark border">${product.category}</span>
+                    <button class="btn btn-sm btn-outline-danger" data-action="delete-product">Delete</button>
                 </div>
-                <div class="admin-product-info">
-                    <div class="admin-row-title">${escapeHtml(product.name)}</div>
-                    <div class="admin-row-sub">${product.category?.replace('-', ' ') || ''}</div>
-                </div>
-                <div class="admin-product-fields">
-                    <label class="admin-field">
-                        <span>Name</span>
-                        <input class="filter-input" data-role="name" value="${escapeHtml(product.name)}" />
-                    </label>
-                    <label class="admin-field">
-                        <span>Price</span>
-                        <input class="filter-input" data-role="price" type="number" step="0.01" value="${product.price}" />
-                    </label>
-                    <label class="admin-field">
-                        <span>Category</span>
-                        <select class="filter-select" data-role="category">
-                            <option value="phone-case" ${product.category === 'phone-case' ? 'selected' : ''}>Phone case</option>
-                            <option value="laptop-case" ${product.category === 'laptop-case' ? 'selected' : ''}>Laptop case</option>
-                            <option value="tablet-case" ${product.category === 'tablet-case' ? 'selected' : ''}>Tablet case</option>
-                            <option value="watch-case" ${product.category === 'watch-case' ? 'selected' : ''}>Watch case</option>
-                            <option value="accessory" ${product.category === 'accessory' ? 'selected' : ''}>Accessory</option>
-                        </select>
-                    </label>
-                    <label class="admin-field">
-                        <span>Stock</span>
-                        <input class="filter-input" data-role="stock" type="number" min="0" value="${product.stock ?? 0}" />
-                    </label>
-                    <label class="admin-field">
-                        <span>Brand</span>
-                        <input class="filter-input" data-role="brand" value="${escapeHtml(product.brand || '')}" />
-                    </label>
-                    <label class="admin-field">
-                        <span>Material</span>
-                        <input class="filter-input" data-role="material" value="${escapeHtml(product.material || '')}" />
-                    </label>
-                    <label class="admin-field">
-                        <span>Color</span>
-                        <input class="filter-input" data-role="color" value="${escapeHtml(product.color || '')}" />
-                    </label>
-                    <label class="admin-field admin-field-wide">
-                        <span>Description</span>
-                        <textarea class="filter-input" data-role="description" rows="3">${escapeHtml(product.description || '')}</textarea>
-                    </label>
-                    <label class="admin-field admin-field-wide">
-                        <span>Tags (comma separated)</span>
-                        <input class="filter-input" data-role="tags" value="${escapeHtml((product.tags || []).join(', '))}" />
-                    </label>
-                    <label class="admin-field admin-field-wide">
-                        <span>Image URLs (comma separated)</span>
-                        <input class="filter-input" data-role="images" value="${escapeHtml((product.images || []).join(', '))}" />
-                    </label>
-                    <label class="admin-field admin-field-wide">
-                        <span>Compatible models (JSON array)</span>
-                        <textarea class="filter-input" data-role="models" rows="3">${escapeHtml(JSON.stringify(product.compatible_models || []))}</textarea>
-                    </label>
-                    <label class="admin-field admin-field-checkbox">
-                        <span>Active</span>
-                        <input type="checkbox" data-role="active" ${product.is_active !== false ? 'checked' : ''}>
-                    </label>
-                </div>
-                <div class="admin-row-actions">
-                    <button class="btn btn-primary" data-action="update-product">Save</button>
-                    <button class="btn btn-danger" data-action="delete-product">Delete</button>
+                <div class="card-body">
+                    <div class="row g-3">
+                         <div class="col-md-2 text-center">
+                            ${product.images?.[0] ? `<img src="${product.images[0]}" class="img-fluid rounded" alt="${escapeHtml(product.name)}" style="max-height: 100px;">` : '<div class="text-muted p-3 bg-light rounded">No image</div>'}
+                            <div class="mt-2 text-muted small">${product._id}</div>
+                         </div>
+                         <div class="col-md-10">
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted">Name</label>
+                                    <input class="form-control form-control-sm" data-role="name" value="${escapeHtml(product.name)}" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted">Price</label>
+                                    <input class="form-control form-control-sm" data-role="price" type="number" step="0.01" value="${product.price}" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted">Stock</label>
+                                    <input class="form-control form-control-sm" data-role="stock" type="number" value="${product.stock ?? 0}" />
+                                </div>
+                                <div class="col-md-12">
+                                     <label class="form-label small text-muted">Description</label>
+                                     <textarea class="form-control form-control-sm" data-role="description" rows="2">${escapeHtml(product.description || '')}</textarea>
+                                </div>
+                                <div class="col-md-12 d-flex justify-content-between align-items-center gap-2 mt-2">
+                                    <div class="form-check d-flex align-items-center me-3">
+                                        <input class="form-check-input" type="checkbox" data-role="active" ${product.is_active !== false ? 'checked' : ''}>
+                                        <label class="form-check-label ms-2 small">Active</label>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                       <button class="btn btn-link btn-sm text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#more-details-${product._id}">
+                                            More Details
+                                        </button>
+                                       <button class="btn btn-sm btn-primary" data-action="update-product">Save Changes</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="collapse col-12" id="more-details-${product._id}">
+                                    <div class="row g-2 mt-2 pt-2 border-top">
+                                        <div class="col-md-3">
+                                            <input class="form-control form-control-sm" data-role="brand" placeholder="Brand" value="${escapeHtml(product.brand || '')}" />
+                                        </div>
+                                         <div class="col-md-3">
+                                            <input class="form-control form-control-sm" data-role="category" placeholder="Category" value="${escapeHtml(product.category || '')}" />
+                                        </div>
+                                         <div class="col-md-6">
+                                            <input class="form-control form-control-sm" data-role="images" placeholder="Images csv" value="${escapeHtml((product.images || []).join(','))}" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                         </div>
+                    </div>
                 </div>
             </div>
         `
@@ -394,7 +424,11 @@ async function handleProductAction(event) {
 
   if (!productId) return;
 
+  const btn = event.target;
+
   if (action === 'delete-product') {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+
     try {
       await api.deleteProduct(productId, authToken);
       showAlert('Product deleted', 'success');
@@ -408,21 +442,25 @@ async function handleProductAction(event) {
 
   if (action !== 'update-product') return;
 
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Saving...';
+
   const name = row.querySelector('[data-role="name"]')?.value.trim();
   const price = Number(row.querySelector('[data-role="price"]')?.value);
-  const category = row.querySelector('[data-role="category"]')?.value;
   const stock = Number(row.querySelector('[data-role="stock"]')?.value);
-  const brand = row.querySelector('[data-role="brand"]')?.value.trim();
-  const material = row.querySelector('[data-role="material"]')?.value.trim();
-  const color = row.querySelector('[data-role="color"]')?.value.trim();
   const description = row.querySelector('[data-role="description"]')?.value.trim();
-  const tagsRaw = row.querySelector('[data-role="tags"]')?.value;
-  const imagesRaw = row.querySelector('[data-role="images"]')?.value;
-  const modelsRaw = row.querySelector('[data-role="models"]')?.value;
   const isActive = row.querySelector('[data-role="active"]')?.checked ?? true;
 
-  if (!name || Number.isNaN(price) || price < 0 || !category || Number.isNaN(stock) || stock < 0 || !description) {
-    showAlert('Fill name, description, category, and valid price/stock', 'error');
+  // Expanded fields (if toggled)
+  const brand = row.querySelector('[data-role="brand"]')?.value.trim();
+  const category = row.querySelector('[data-role="category"]')?.value.trim();
+  const imagesRaw = row.querySelector('[data-role="images"]')?.value;
+
+  if (!name || Number.isNaN(price) || price < 0 || Number.isNaN(stock) || stock < 0 || !description) {
+    showAlert('Please fill required fields (Name, Price, Stock, Description)', 'error');
+    btn.disabled = false;
+    btn.innerHTML = originalText;
     return;
   }
 
@@ -432,27 +470,32 @@ async function handleProductAction(event) {
     category,
     stock,
     brand,
-    material,
-    color,
     description,
-    tagsRaw,
     imagesRaw,
-    modelsRaw,
     isActive,
+    // Add default values for missing fields to avoid breaking changes if API requires them
+    material: '',
+    color: '',
+    tagsRaw: '',
+    modelsRaw: '',
   });
 
   if (!payloadResult.ok) {
     showAlert(payloadResult.error, 'error');
+    btn.disabled = false;
+    btn.innerHTML = originalText;
     return;
   }
 
   try {
     await api.updateProduct(productId, payloadResult.payload, authToken);
     showAlert('Product updated', 'success');
-    await loadAdminProducts();
   } catch (error) {
     console.error('Error updating product:', error);
     showAlert(error.message || 'Error updating product', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
   }
 }
 
@@ -499,7 +542,7 @@ async function handleCreateProduct(event) {
 
   try {
     await api.createProduct(payloadResult.payload, authToken);
-    showAlert('Product created', 'success');
+    showAlert('Product created successfully', 'success');
     event.target.reset();
     await loadAdminProducts();
   } catch (error) {
@@ -528,7 +571,7 @@ function buildProductPayload(values) {
       tags: parseCsv(values.tagsRaw),
       images: parseCsv(values.imagesRaw),
       compatible_models: modelsResult.value,
-      is_active: values.isActive,
+      is_active: values.is_active ?? values.isActive, // handle both keys if inconsistent
     },
   };
 }
@@ -568,7 +611,5 @@ function escapeHtml(value) {
 }
 
 function setListMessage(container, message, isError = false) {
-  container.innerHTML = isError
-    ? `<p class="alert alert-error">${message}</p>`
-    : `<p class="empty-state">${message}</p>`;
+  container.innerHTML = `<div class="text-center py-4 ${isError ? 'text-danger' : 'text-muted'}">${message}</div>`;
 }

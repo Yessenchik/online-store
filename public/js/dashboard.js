@@ -7,10 +7,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (user) {
     loadAnalytics(user);
+    updateSidebarProfile(user);
   }
 
+  // Section switching logic
+  const navItems = document.querySelectorAll('.list-group-item');
+  const sections = document.querySelectorAll('.dashboard-section');
+
+  navItems.forEach((item) => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetSection = item.getAttribute('data-section');
+
+      navItems.forEach((i) => i.classList.remove('active'));
+      item.classList.add('active');
+
+      sections.forEach((s) => {
+        s.classList.remove('active');
+        if (s.id === targetSection) s.classList.add('active');
+      });
+    });
+  });
+
+  // Navigation from hash
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    const targetNavItem = document.querySelector(`.list-group-item[data-section="${hash}"]`);
+    if (targetNavItem) targetNavItem.click();
+  }
+
+  // Address modal controls
+  document.getElementById('btn-add-address')?.addEventListener('click', () => {
+    const formContainer = document.getElementById('address-form-container');
+    formContainer.style.display = 'block';
+    formContainer.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('form-title').textContent = 'Add New Address';
+    resetAddressForm();
+  });
+
+  document.getElementById('address-close')?.addEventListener('click', () => {
+    document.getElementById('address-form-container').style.display = 'none';
+  });
+
   document.getElementById('address-form')?.addEventListener('submit', handleAddressSubmit);
-  document.getElementById('address-cancel')?.addEventListener('click', resetAddressForm);
+  document.getElementById('address-cancel')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('address-form-container').style.display = 'none';
+    resetAddressForm();
+  });
+
   document.getElementById('address-list')?.addEventListener('click', handleAddressListClick);
 
   // Setup order filter
@@ -25,6 +70,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+function updateSidebarProfile(user) {
+  const initials = user.name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase();
+  const initialsEl = document.getElementById('user-initials');
+  const nameEl = document.getElementById('user-name-brief');
+  const emailEl = document.getElementById('user-email-brief');
+
+  if (initialsEl) initialsEl.textContent = initials;
+  if (nameEl) nameEl.textContent = user.name;
+  if (emailEl) emailEl.textContent = user.email;
+}
+
 async function loadUserInfo() {
   const container = document.getElementById('user-details');
 
@@ -34,18 +94,45 @@ async function loadUserInfo() {
     if (result.success) {
       const user = result.data;
       container.innerHTML = `
-                <p><strong>Name:</strong> ${user.name}</p>
-                <p><strong>Email:</strong> ${user.email}</p>
-                <p><strong>Phone:</strong> ${user.phone || 'Not provided'}</p>
-                <p><strong>Role:</strong> ${user.role}</p>
-                <p><strong>Member since:</strong> ${formatDate(user.createdAt)}</p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1">Full Name</small>
+                            <span class="fs-5 text-dark">${user.name}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1">Email Address</small>
+                            <span class="fs-5 text-dark">${user.email}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1">Phone Number</small>
+                            <span class="fs-5 text-dark">${user.phone || 'Not provided'}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1">Account Role</small>
+                            <span class="fs-5 text-dark">${user.role}</span>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1">Member Since</small>
+                            <span class="fs-5 text-dark">${formatDate(user.createdAt)}</span>
+                        </div>
+                    </div>
+                </div>
             `;
       renderAddresses(user.addresses || []);
       return user;
     }
   } catch (error) {
     console.error('Error loading user info:', error);
-    container.innerHTML = '<p class="alert alert-error">Error loading user information</p>';
+    container.innerHTML = '<div class="alert alert-danger">Error loading user information</div>';
   }
 
   return null;
@@ -56,42 +143,68 @@ function renderAddresses(addresses) {
   if (!list) return;
 
   if (!addresses.length) {
-    list.innerHTML = '<p class="empty-state">No addresses yet</p>';
+    list.innerHTML =
+      '<div class="text-center py-4 text-muted"><i class="ri-map-pin-line ri-2x mb-2 d-block"></i><p>No addresses yet. Add one to get started.</p></div>';
     return;
   }
 
-  list.innerHTML = addresses
-    .map(
-      (address) => `
-        <div class="address-card" data-address-id="${address._id}">
-            <div><strong>${address.street}</strong></div>
-            <div>${address.city}, ${address.country}</div>
-            ${address.phone ? `<div>${address.phone}</div>` : ''}
-            ${address.is_default ? '<span class="badge">Default</span>' : ''}
-            <div class="address-actions">
-                <button type="button" class="btn btn-primary" data-action="edit">Edit</button>
-                <button type="button" class="btn btn-danger" data-action="delete">Delete</button>
+  list.innerHTML =
+    `<div class="row g-3">` +
+    addresses
+      .map(
+        (address) => `
+        <div class="col-md-6">
+            <div class="card h-100 ${address.is_default ? 'border-primary' : 'border-light'} address-card shadow-sm" data-address-id="${address._id}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title fw-bold mb-0">${address.street}</h6>
+                        ${address.is_default ? '<span class="badge bg-primary">Default</span>' : ''}
+                    </div>
+                    <p class="card-text text-muted small mb-3">
+                        ${address.city}, ${address.country}<br>
+                        ${address.phone ? `<span class="d-flex align-items-center gap-1 mt-1"><i class="ri-phone-line"></i> ${address.phone}</span>` : ''}
+                    </p>
+                    <div class="d-flex gap-2 mt-auto">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-action="edit">Edit</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete">Delete</button>
+                    </div>
+                </div>
             </div>
         </div>
     `
-    )
-    .join('');
+      )
+      .join('') +
+    `</div>`;
 }
 
 function handleAddressListClick(event) {
   const action = event.target?.dataset?.action;
   if (!action) return;
 
-  if (action === 'edit') {
-    const card = event.target.closest('.address-card');
-    const addressId = card?.dataset?.addressId;
-    if (!addressId) return;
+  const card = event.target.closest('.address-card');
+  if (!card) return;
 
-    const street = card.querySelector('strong')?.textContent || '';
-    const cityCountry = card.querySelectorAll('div')[1]?.textContent || '';
-    const phone = card.querySelectorAll('div')[2]?.textContent || '';
+  if (action === 'edit') {
+    const addressId = card.dataset.addressId;
+
+    // Extract data from DOM somewhat reliably
+    const street = card.querySelector('.card-title')?.textContent || '';
+    const items = card.querySelector('.card-text')?.innerHTML.split('<br>') || [];
+    const cityCountry = items[0]?.trim() || '';
+    // phone extract handling specifically for the icon span
+    let phone = '';
+    const phoneEl = card.querySelector('.ri-phone-line');
+    if (phoneEl && phoneEl.parentElement) {
+      phone = phoneEl.parentElement.textContent.trim();
+    }
+
     const [city, country] = cityCountry.split(',').map((item) => item.trim());
     const isDefault = !!card.querySelector('.badge');
+
+    const formContainer = document.getElementById('address-form-container');
+    formContainer.style.display = 'block';
+    formContainer.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('form-title').textContent = 'Edit Address';
 
     setAddressFormValues({
       id: addressId,
@@ -106,13 +219,15 @@ function handleAddressListClick(event) {
   }
 
   if (action === 'delete') {
-    handleDeleteAddress(event.target.closest('.address-card'));
+    handleDeleteAddress(card);
   }
 }
 
 async function handleDeleteAddress(card) {
   const addressId = card?.dataset?.addressId;
   if (!addressId) return;
+
+  if (!confirm('Are you sure you want to delete this address?')) return;
 
   try {
     const userId = await getCurrentUserId();
@@ -150,7 +265,7 @@ async function handleAddressSubmit(e) {
   const isDefault = document.getElementById('address-default')?.checked || false;
 
   if (!street || !city || !country || !phone) {
-    showAlert('Please заполните адрес полностью', 'error');
+    showAlert('Please fill in all fields', 'error');
     return;
   }
 
@@ -177,6 +292,7 @@ async function handleAddressSubmit(e) {
       showAlert('Address added successfully', 'success');
     }
 
+    document.getElementById('address-form-container').style.display = 'none';
     resetAddressForm();
     await loadUserInfo();
   } catch (error) {
@@ -187,7 +303,8 @@ async function handleAddressSubmit(e) {
 
 async function loadOrders(status = '') {
   const container = document.getElementById('orders-container');
-  container.innerHTML = '<div class="loading">Loading orders...</div>';
+  container.innerHTML =
+    '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
 
   try {
     const params = status ? { status } : {};
@@ -222,51 +339,70 @@ function normalizeOrder(order) {
 
 function createOrderCard(order) {
   const status = order.orderStatus || 'pending';
-  const statusClass = `status-${status}`;
+  let badgeClass = 'bg-secondary';
+
+  if (status === 'delivered') badgeClass = 'bg-success';
+  else if (status === 'shipped') badgeClass = 'bg-info';
+  else if (status === 'processing') badgeClass = 'bg-primary';
+  else if (status === 'cancelled') badgeClass = 'bg-danger';
 
   return `
-        <div class="order-card">
-            <div class="order-header">
+        <div class="card mb-3 border shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="order-number">${order.orderNumber}</div>
-                    <small>${formatDate(order.createdAt)}</small>
+                    <span class="fw-bold me-2">#${order.orderNumber}</span>
+                    <small class="text-muted"><i class="ri-calendar-line"></i> ${formatDate(order.createdAt)}</small>
                 </div>
-                <span class="order-status ${statusClass}">${status.toUpperCase()}</span>
+                <span class="badge ${badgeClass} rounded-pill">${status.toUpperCase()}</span>
             </div>
             
-            <div class="order-items">
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
                 ${order.items
                   .map(
                     (item) => `
-                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #eee;">
-                        <span>${item.product_snapshot?.name || 'Product'} x${item.quantity}</span>
-                        <span>${formatPrice(item.subtotal)}</span>
-                    </div>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <div class="d-flex align-items-center gap-3">
+                             <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="ri-image-line text-muted"></i>
+                             </div>
+                             <div>
+                                <span class="fw-medium d-block">${item.product_snapshot?.name || 'Product'}</span>
+                                <span class="text-muted small">Qty: ${item.quantity}</span>
+                             </div>
+                        </div>
+                        <span class="fw-bold">${formatPrice(item.subtotal)}</span>
+                    </li>
                 `
                   )
                   .join('')}
+                </ul>
             </div>
             
-            <div class="order-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #eee;">
-                <div>
-                    <strong>Total: ${formatPrice(order.pricing.total)}</strong>
+            <div class="card-footer bg-light py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small">Total Amount:</span>
+                        <span class="fw-bold fs-5 ms-2 text-primary">${formatPrice(order.pricing.total)}</span>
+                    </div>
+                    ${
+                      status === 'pending' || status === 'processing'
+                        ? `<button class="btn btn-sm btn-outline-danger" onclick="cancelOrder('${order._id}')">Cancel Order</button>`
+                        : ''
+                    }
                 </div>
                 ${
-                  status === 'pending' || status === 'processing'
-                    ? `<button class="btn btn-danger" onclick="cancelOrder('${order._id}')">Cancel Order</button>`
+                  order.trackingNumber
+                    ? `
+                    <div class="mt-3 p-2 bg-white rounded border d-flex align-items-center gap-2 text-muted small">
+                        <i class="ri-truck-line text-primary"></i> 
+                        <span>Tracking:</span>
+                        <span class="fw-bold text-dark font-monospace">${order.trackingNumber}</span>
+                    </div>
+                `
                     : ''
                 }
             </div>
-            
-            ${
-              order.trackingNumber
-                ? `
-                <div style="margin-top: 1rem; padding: 0.5rem; background: #f8f9fa; border-radius: 4px;">
-                    <strong>Tracking Number:</strong> ${order.trackingNumber}
-                </div>
-            `
-                : ''
-            }
         </div>
     `;
 }
@@ -301,22 +437,28 @@ function buildBarChart(title, rows) {
   const maxValue = Math.max(...safeRows.map((row) => row.value), 1);
 
   return `
-        <div class="chart">
-            <div class="chart-title">${title}</div>
+        <div class="card h-100 border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-bottom">
+                <h6 class="mb-0 fw-bold">${title}</h6>
+            </div>
+            <div class="card-body">
             ${safeRows
               .map((row) => {
                 const width = Math.round((row.value / maxValue) * 100);
                 return `
-                    <div class="chart-row">
-                        <span class="chart-label">${row.label}</span>
-                        <div class="chart-bar">
-                            <div class="chart-bar-fill" style="width: ${width}%;"></div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>${row.label}</span>
+                            <span class="fw-bold">${row.displayValue ?? row.value}</span>
                         </div>
-                        <span class="chart-value">${row.displayValue ?? row.value}</span>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: ${width}%" aria-valuenow="${width}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
                     </div>
                 `;
               })
               .join('')}
+            </div>
         </div>
     `;
 }
@@ -325,7 +467,8 @@ async function loadAnalytics(user) {
   const container = document.getElementById('analytics-content');
   if (!container) return;
 
-  container.innerHTML = '<div class="loading">Loading analytics...</div>';
+  container.innerHTML =
+    '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
 
   await loadUserAnalytics(user, container);
 }
@@ -348,25 +491,31 @@ async function loadUserAnalytics(user, container) {
     }));
 
     container.innerHTML = `
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Orders</div>
-                    <div class="stat-value">${stats.totalOrders ?? 0}</div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="p-4 bg-light rounded text-center h-100">
+                        <div class="small text-muted text-uppercase fw-bold mb-2">Total Orders</div>
+                        <div class="display-6 fw-bold text-primary">${stats.totalOrders ?? 0}</div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Total Spent</div>
-                    <div class="stat-value">${stats.totalSpent ? formatPrice(stats.totalSpent) : '$0.00'}</div>
+                <div class="col-md-4">
+                    <div class="p-4 bg-light rounded text-center h-100">
+                        <div class="small text-muted text-uppercase fw-bold mb-2">Total Spent</div>
+                        <div class="display-6 fw-bold text-primary">${stats.totalSpent ? formatPrice(stats.totalSpent) : '$0.00'}</div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Avg Order</div>
-                    <div class="stat-value">${stats.averageOrderValue ? formatPrice(stats.averageOrderValue) : '$0.00'}</div>
+                <div class="col-md-4">
+                    <div class="p-4 bg-light rounded text-center h-100">
+                        <div class="small text-muted text-uppercase fw-bold mb-2">Avg Order</div>
+                        <div class="display-6 fw-bold text-primary">${stats.averageOrderValue ? formatPrice(stats.averageOrderValue) : '$0.00'}</div>
+                    </div>
                 </div>
             </div>
-            ${statusRows.length > 0 ? buildBarChart('Orders by Status', statusRows) : '<p class="empty-state">No analytics available yet</p>'}
+            ${statusRows.length > 0 ? buildBarChart('Orders by Status', statusRows) : ''}
         `;
   } catch (error) {
     console.error('Error loading analytics:', error);
-    container.innerHTML = '<p class="alert alert-error">Error loading analytics</p>';
+    container.innerHTML = '<div class="alert alert-danger">Error loading analytics</div>';
   }
 }
 
@@ -377,14 +526,13 @@ function setAddressFormValues(values) {
   document.getElementById('address-country').value = values.country || '';
   document.getElementById('address-phone').value = values.phone || '';
   document.getElementById('address-default').checked = values.isDefault || false;
-  document.getElementById('address-submit').textContent = values.isEditing ? 'Update Address' : 'Add Address';
-  document.getElementById('address-cancel').style.display = values.isEditing ? '' : 'none';
+  document.getElementById('address-submit').textContent = values.isEditing ? 'Update Address' : 'Save Address';
 }
 
 function setOrdersMessage(container, message, isError = false) {
   container.innerHTML = isError
-    ? `<p class="alert alert-error">${message}</p>`
-    : `<p class="empty-state">${message}</p>`;
+    ? `<div class="alert alert-danger">${message}</div>`
+    : `<div class="text-center py-5 text-muted"><p>${message}</p></div>`;
 }
 
 async function getCurrentUserId() {

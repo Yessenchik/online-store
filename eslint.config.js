@@ -31,7 +31,7 @@ module.exports = [
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.jquery, // In case jquery is used
+        ...globals.jquery,
         Chart: 'readonly',
         api: 'readonly',
         authToken: 'readonly',

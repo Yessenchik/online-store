@@ -79,7 +79,8 @@ function updateAuthUI() {
   if (currentUser) {
     //show user name
     if (userNameDisplay) {
-      userNameDisplay.textContent = `${currentUser.name}`;
+      const nameSpan = userNameDisplay.querySelector('span') || userNameDisplay;
+      nameSpan.textContent = `${currentUser.name}`;
       showElement(userNameDisplay);
     }
 
