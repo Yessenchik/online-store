@@ -12,7 +12,10 @@ const extractToken = (req) => {
 
 //verify token and get user
 const verifyTokenAndGetUser = async (token) => {
-  // SECURITY: Validate that JWT_TOKEN is set in environment variables to prevent using a default/empty secret
+  if (!process.env.JWT_TOKEN) {
+    throw new Error('JWT_TOKEN environment variable is not set. Authentication cannot proceed.');
+  }
+
   const decoded = jwt.verify(token, process.env.JWT_TOKEN);
   return await User.findById(decoded.id).select('-password');
 };

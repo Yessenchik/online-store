@@ -79,7 +79,9 @@ describe('Order Endpoints', () => {
       expect(res.statusCode).toEqual(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.items).toHaveLength(1);
-      expect(res.body.data.pricing.total).toBe(230);
+      expect(res.body.data.pricing.subtotal).toBe(200);
+      expect(res.body.data.pricing.shipping).toBe(10);
+      expect(res.body.data.pricing.total).toBe(210);
 
       // Check stock reduction
       const product = await Product.findById(productId);

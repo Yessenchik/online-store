@@ -14,7 +14,11 @@ exports.getProducts = async (req, res) => {
   try {
     const { category, minPrice, maxPrice, search, sort = '-createdAt', page = 1, limit = 12 } = req.query;
 
-    // OPTIMIZE: Validate 'sort' field against allowed fields to prevent unexpected query behavior
+    // Validate sort field
+    const allowedSortFields = ['createdAt', 'price', 'name', 'rating.average', 'sold_count'];
+    const sortField = sort.replace(/^-/, '');
+    const sanitizedSort = allowedSortFields.includes(sortField) ? sort : '-createdAt';
+
     // build query
     const query = {};
     const includeInactive = req.user?.role === 'admin' && String(req.query.includeInactive).toLowerCase() === 'true';
@@ -39,7 +43,7 @@ exports.getProducts = async (req, res) => {
 
     //execute a query with pagination
     const { page: pageNum, limit: limitNum, skip } = getPagination(page, limit);
-    const products = await Product.find(query).sort(sort).limit(limitNum).skip(skip);
+    const products = await Product.find(query).sort(sanitizedSort).limit(limitNum).skip(skip);
 
     const total = await Product.countDocuments(query);
 
@@ -74,8 +78,29 @@ exports.getProduct = async (req, res) => {
 //access - private/admin
 exports.createProduct = async (req, res) => {
   try {
-    // SECURITY: Validate req.body content before creation to prevent injection of unallowed fields (e.g., set admin status)
-    const product = await Product.create(req.body);
+    // Whitelist allowed fields for security
+    const allowedFields = [
+      'name',
+      'description',
+      'material',
+      'color',
+      'compatible_models',
+      'category',
+      'price',
+      'stock',
+      'images',
+      'brand',
+      'tags',
+      'is_active',
+    ];
+    const sanitizedBody = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        sanitizedBody[field] = req.body[field];
+      }
+    }
+
+    const product = await Product.create(sanitizedBody);
 
     return sendSuccess(res, {
       data: product,
@@ -92,10 +117,31 @@ exports.createProduct = async (req, res) => {
 //access - private/admin
 exports.updateProduct = async (req, res) => {
   try {
+    // Whitelist allowed update fields
+    const allowedUpdates = [
+      'name',
+      'description',
+      'material',
+      'color',
+      'compatible_models',
+      'category',
+      'price',
+      'stock',
+      'images',
+      'brand',
+      'tags',
+      'is_active',
+    ];
+    const sanitizedUpdate = {};
+    for (const field of allowedUpdates) {
+      if (req.body[field] !== undefined) {
+        sanitizedUpdate[field] = req.body[field];
+      }
+    }
+
     const product = await Product.findByIdAndUpdate(
       req.params.id,
-      // SECURITY: Use a whitelist of allowed updates instead of spreading req.body
-      { $set: req.body },
+      { $set: sanitizedUpdate },
       {
         new: true,
         runValidators: true,

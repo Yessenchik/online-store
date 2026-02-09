@@ -4,10 +4,12 @@ const { sendError, sendSuccess, handleValidationError } = require('./responseUti
 
 //generate jwt token
 const generateToken = (id) => {
-  // SECURITY: Use a more secure secret from environment variables with a fallback check
-  // OPTIMIZE: Consider a shorter expiration time for better security (e.g., 1h or 24h)
+  if (!process.env.JWT_TOKEN) {
+    throw new Error('JWT_TOKEN environment variable is not set. Cannot generate token.');
+  }
+
   return jwt.sign({ id }, process.env.JWT_TOKEN, {
-    expiresIn: '30d',
+    expiresIn: '7d',
   });
 };
 

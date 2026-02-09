@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 const {
   sendError,
   sendSuccess,
@@ -23,14 +24,18 @@ const createOrderItem = (product, quantity) => ({
 });
 
 //update product stock
-const updateProductStock = async (productId, quantity, decrease = true) => {
+const updateProductStock = async (productId, quantity, decrease = true, session = null) => {
   const multiplier = decrease ? -1 : 1;
-  await Product.findByIdAndUpdate(productId, {
-    $inc: {
-      stock: quantity * multiplier,
-      sold_count: quantity * multiplier,
+  await Product.findByIdAndUpdate(
+    productId,
+    {
+      $inc: {
+        stock: quantity * multiplier,
+        sold_count: quantity * multiplier,
+      },
     },
-  });
+    { session }
+  );
 };
 
 //check if user can access order
@@ -38,47 +43,86 @@ const canAccessOrder = (order, userId, userRole) => {
   return order.user._id.toString() === userId.toString() || userRole === 'admin';
 };
 
-// TODO: Refactor large order creation logic into a Transaction to ensure Atomicity
 // desc - create new order
 // route - post /api/orders
 // access - private
 exports.createOrder = async (req, res) => {
+  let session = null;
+  let useTransaction = false;
+
+  try {
+    // Transactions require a replica set, skip in test/standalone environments
+    if (process.env.NODE_ENV !== 'test') {
+      session = await mongoose.startSession();
+      session.startTransaction();
+      useTransaction = true;
+    }
+  } catch {
+    // Fallback to non-transactional mode
+    session = null;
+    useTransaction = false;
+  }
+
   try {
     const { items, shippingAddress, paymentMethod, pricing } = req.body;
-
-    // SECURITY: Sanitize pricing data from request body to ensure it matches product calculations
-    //validate and prepare order items with product snapshots
 
     //validate and prepare order items with product snapshots
     const orderItems = [];
     for (const item of items) {
-      const product = await Product.findById(item.product);
+      const query = Product.findById(item.product);
+      const product = session ? await query.session(session) : await query;
 
       if (!product) {
+        if (useTransaction) await session.abortTransaction();
         return sendError(res, 404, `Product ${item.product} not found`);
       }
 
       if (product.stock < item.quantity) {
+        if (useTransaction) await session.abortTransaction();
         return sendError(res, 400, `Insufficient stock for ${product.name}`);
       }
 
       orderItems.push(createOrderItem(product, item.quantity));
-      await updateProductStock(product._id, item.quantity, true);
+      await updateProductStock(product._id, item.quantity, true, session);
     }
 
+    // Server-side pricing calculation
+    const calculatedSubtotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
+    const shipping = Math.max(Number(pricing?.shipping) || 0, 0);
+    const discount = Math.max(Number(pricing?.discount) || 0, 0);
+    const calculatedTotal = Math.max(calculatedSubtotal + shipping - discount, 0);
+
+    const sanitizedPricing = {
+      subtotal: calculatedSubtotal,
+      shipping,
+      discount,
+      total: calculatedTotal,
+    };
+
     //create order
-    const order = await Order.create({
+    const orderDoc = {
       user: req.user._id,
       items: orderItems,
       shipping_address: shippingAddress,
       payment_method: paymentMethod,
-      pricing,
-    });
+      pricing: sanitizedPricing,
+    };
+
+    let order;
+    if (session) {
+      const result = await Order.create([orderDoc], { session });
+      order = result[0];
+    } else {
+      order = await Order.create(orderDoc);
+    }
 
     //populate order details
-    const populatedOrder = await Order.findById(order._id)
+    const populateQuery = Order.findById(order._id)
       .populate('user', 'name email')
       .populate('items.product', 'name images');
+    const populatedOrder = session ? await populateQuery.session(session) : await populateQuery;
+
+    if (useTransaction) await session.commitTransaction();
 
     return sendSuccess(res, {
       data: populatedOrder,
@@ -86,7 +130,10 @@ exports.createOrder = async (req, res) => {
       status: 201,
     });
   } catch (error) {
+    if (useTransaction) await session.abortTransaction();
     return handleValidationError(res, error, 'Error creating order');
+  } finally {
+    if (session) session.endSession();
   }
 };
 

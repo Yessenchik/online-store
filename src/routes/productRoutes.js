@@ -14,8 +14,6 @@ const { protect, restrictTo, optionalAuth } = require('../middleware/auth');
 const { sanitizeBody } = require('../middleware/sanitizer');
 const { productValidation } = require('../middleware/validator');
 
-// validation TODO removed as it will be handled in a separate commit or part of this one if small
-
 //public routes
 router.get('/', optionalAuth, getProducts);
 router.get('/:id', getProduct);

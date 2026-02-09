@@ -1,9 +1,23 @@
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const Review = require('../models/Review');
-const User = require('../models/User');
 const mongoose = require('mongoose');
 const { sendError, sendSuccess } = require('./responseUtils');
+
+//simple in-memory cache with TTL for expensive aggregation queries
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const simpleCache = new Map();
+
+const getCachedOrCompute = async (key, computeFn) => {
+  const cached = simpleCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return cached.data;
+  }
+
+  const data = await computeFn();
+  simpleCache.set(key, { data, timestamp: Date.now() });
+  return data;
+};
 
 //build match stage with date range and order status filter
 const buildDateRangeMatchStage = (startDate, endDate, excludeCancelled = true) => {
@@ -27,25 +41,26 @@ const buildDateRangeMatchStage = (startDate, endDate, excludeCancelled = true) =
 //access - private/admin
 exports.getProductStats = async (req, res) => {
   try {
-    // OPTIMIZE: These calculations could be heavy. Consider caching the results (e.g., Redis) or running them on a separate schedule.
-    const stats = await Product.aggregate([
-      {
-        $match: { is_active: true },
-      },
-      {
-        $group: {
-          _id: '$category',
-          totalProducts: { $sum: 1 },
-          averagePrice: { $avg: '$price' },
-          totalStock: { $sum: '$stock' },
-          totalSold: { $sum: '$sold_count' },
-          averageRating: { $avg: '$rating.average' },
+    const stats = await getCachedOrCompute('productStats', () =>
+      Product.aggregate([
+        {
+          $match: { is_active: true },
         },
-      },
-      {
-        $sort: { totalSold: -1 },
-      },
-    ]);
+        {
+          $group: {
+            _id: '$category',
+            totalProducts: { $sum: 1 },
+            averagePrice: { $avg: '$price' },
+            totalStock: { $sum: '$stock' },
+            totalSold: { $sum: '$sold_count' },
+            averageRating: { $avg: '$rating.average' },
+          },
+        },
+        {
+          $sort: { totalSold: -1 },
+        },
+      ])
+    );
 
     return sendSuccess(res, { data: stats });
   } catch (error) {
