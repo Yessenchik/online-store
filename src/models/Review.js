@@ -1,9 +1,6 @@
 const mongoose = require('mongoose');
 const { constraints, createRef } = require('./modelUtils');
 
-// TODO: Consider moving comment length and rating range validation to request middleware
-// to provide immediate feedback to users and sanitize input before it reaches the model.
-
 const reviewSchema = new mongoose.Schema(
   {
     //referenced user

@@ -35,7 +35,7 @@ exports.getUserProfile = async (req, res) => {
       return sendError(res, 403, 'Not authorized to view this profile');
     }
 
-    return sendSuccess(res, user);
+    return sendSuccess(res, { data: user });
   } catch (error) {
     return sendError(res, 500, 'Error fetching user profile', error);
   }
@@ -68,7 +68,7 @@ exports.updateUserProfile = async (req, res) => {
       return sendError(res, 404, 'User not found');
     }
 
-    return sendSuccess(res, user, 'Profile updated successfully');
+    return sendSuccess(res, { data: user, message: 'Profile updated successfully' });
   } catch (error) {
     return handleValidationError(res, error, 'Error updating profile');
   }
@@ -96,7 +96,7 @@ exports.addAddress = async (req, res) => {
     user.addresses.push(address);
     await user.save();
 
-    return sendSuccess(res, user, 'Address added successfully');
+    return sendSuccess(res, { data: user, message: 'Address added successfully' });
   } catch (error) {
     return handleValidationError(res, error, 'Error adding address');
   }
@@ -135,7 +135,7 @@ exports.updateAddress = async (req, res) => {
 
     await user.save();
 
-    return sendSuccess(res, user, 'Address updated successfully');
+    return sendSuccess(res, { data: user, message: 'Address updated successfully' });
   } catch (error) {
     return handleValidationError(res, error, 'Error updating address');
   }
@@ -160,7 +160,7 @@ exports.removeAddress = async (req, res) => {
       return sendError(res, 404, 'User not found');
     }
 
-    return sendSuccess(res, user, 'Address removed successfully');
+    return sendSuccess(res, { data: user, message: 'Address removed successfully' });
   } catch (error) {
     return sendError(res, 400, 'Error removing address', error);
   }
@@ -195,7 +195,7 @@ exports.addToCart = async (req, res) => {
     //if nothing to add, return current cart
     if (actualQuantityToAdd <= 0) {
       const updatedUser = await User.findById(req.user._id).populate('cart.product').select('-password');
-      return sendSuccess(res, updatedUser.cart, 'Product already at maximum stock in cart');
+      return sendSuccess(res, { data: updatedUser.cart, message: 'Product already at maximum stock in cart' });
     }
 
     if (cartItemIndex > -1) {
@@ -223,7 +223,7 @@ exports.addToCart = async (req, res) => {
 
     const updatedUser = await User.findById(req.user._id).populate('cart.product').select('-password');
 
-    return sendSuccess(res, updatedUser.cart, 'Product added to cart');
+    return sendSuccess(res, { data: updatedUser.cart, message: 'Product added to cart' });
   } catch (error) {
     return handleValidationError(res, error, 'Error adding to cart');
   }
@@ -246,7 +246,7 @@ exports.removeFromCart = async (req, res) => {
       return sendError(res, 404, 'User not found');
     }
 
-    return sendSuccess(res, user.cart, 'Product removed from cart');
+    return sendSuccess(res, { data: user.cart, message: 'Product removed from cart' });
   } catch (error) {
     return sendError(res, 400, 'Error removing from cart', error);
   }
@@ -259,7 +259,7 @@ exports.clearCart = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.user._id, { $set: { cart: [] } }, { new: true }).select('-password');
 
-    return sendSuccess(res, user.cart, 'Cart cleared successfully');
+    return sendSuccess(res, { data: user.cart, message: 'Cart cleared successfully' });
   } catch (error) {
     return sendError(res, 400, 'Error clearing cart', error);
   }

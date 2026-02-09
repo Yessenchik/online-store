@@ -9,6 +9,7 @@ const cors = require('cors');
 const routes = require('./routes');
 const { errorHandler, notFoundHandler } = require('./middleware/error.middleware');
 const { requestLogger } = require('./utils/logger');
+const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
@@ -48,12 +49,8 @@ app.use(hpp());
 // Request logging middleware
 app.use(requestLogger);
 
-/**
- * TODO: Missing:
- * 1. express-rate-limit (Rate limiting for auth/API routes)
- * 2. sanitize-html (For sanitizing HTML input in descriptions/reviews)
- * 3. Dedicated validation middleware layer
- */
+// Rate limiting
+app.use('/api', apiLimiter);
 
 // Serve static files with automatic extension resolution (.html, .htm)
 const htmlDir = path.join(__dirname, '../public');

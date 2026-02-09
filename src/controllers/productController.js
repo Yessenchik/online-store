@@ -43,7 +43,10 @@ exports.getProducts = async (req, res) => {
 
     const total = await Product.countDocuments(query);
 
-    return sendSuccess(res, products, null, buildPaginationMeta(products, total, pageNum, limitNum));
+    return sendSuccess(res, {
+      data: products,
+      extra: buildPaginationMeta(products, total, pageNum, limitNum),
+    });
   } catch (error) {
     return sendError(res, 500, 'Error fetching products', error);
   }
@@ -60,7 +63,7 @@ exports.getProduct = async (req, res) => {
       return sendError(res, 404, 'Product not found');
     }
 
-    return sendSuccess(res, product);
+    return sendSuccess(res, { data: product });
   } catch (error) {
     return sendError(res, 500, 'Error fetching product', error);
   }
@@ -74,7 +77,11 @@ exports.createProduct = async (req, res) => {
     // SECURITY: Validate req.body content before creation to prevent injection of unallowed fields (e.g., set admin status)
     const product = await Product.create(req.body);
 
-    return sendSuccess(res, product, 'Product created successfully', null, 201);
+    return sendSuccess(res, {
+      data: product,
+      message: 'Product created successfully',
+      status: 201,
+    });
   } catch (error) {
     return handleValidationError(res, error, 'Error creating product');
   }
@@ -99,7 +106,7 @@ exports.updateProduct = async (req, res) => {
       return sendError(res, 404, 'Product not found');
     }
 
-    return sendSuccess(res, product, 'Product updated successfully');
+    return sendSuccess(res, { data: product, message: 'Product updated successfully' });
   } catch (error) {
     return handleValidationError(res, error, 'Error updating product');
   }
@@ -127,7 +134,7 @@ exports.updateStock = async (req, res) => {
       return sendError(res, 404, 'Product not found');
     }
 
-    return sendSuccess(res, product, 'Stock updated successfully');
+    return sendSuccess(res, { data: product, message: 'Stock updated successfully' });
   } catch (error) {
     return sendError(res, 400, 'Error updating stock', error);
   }
@@ -151,7 +158,7 @@ exports.addTag = async (req, res) => {
       return sendError(res, 404, 'Product not found');
     }
 
-    return sendSuccess(res, product, 'Tag added successfully');
+    return sendSuccess(res, { data: product, message: 'Tag added successfully' });
   } catch (error) {
     return sendError(res, 400, 'Error adding tag', error);
   }
@@ -171,7 +178,7 @@ exports.removeTag = async (req, res) => {
       return sendError(res, 404, 'Product not found');
     }
 
-    return sendSuccess(res, product, 'Tag removed successfully');
+    return sendSuccess(res, { data: product, message: 'Tag removed successfully' });
   } catch (error) {
     return sendError(res, 400, 'Error removing tag', error);
   }
@@ -188,7 +195,7 @@ exports.deleteProduct = async (req, res) => {
       return sendError(res, 404, 'Product not found');
     }
 
-    return sendSuccess(res, {}, 'Product deleted successfully');
+    return sendSuccess(res, { message: 'Product deleted successfully' });
   } catch (error) {
     return sendError(res, 500, 'Error deleting product', error);
   }

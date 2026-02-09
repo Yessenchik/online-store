@@ -1,6 +1,3 @@
-// NOTE: These are basic database-level regex validators.
-// TODO: Implement a dedicated validation middleware (using express-validator or Joi)
-// to handle request-level validation, input sanitization, and more complex business rules.
 const validators = {
   email: {
     regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -12,8 +9,6 @@ const validators = {
   },
 };
 
-// TODO: Move these constants to a shared config or use them in validation middleware
-// to ensure consistency between API responses and database constraints.
 const constraints = {
   minName: 2,
   minPassword: 4,

@@ -24,22 +24,6 @@ exports.register = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
 
-    //validate required fields
-    if (!name || !email || !password) {
-      return sendError(res, 400, 'Please provide name, email and password');
-    }
-
-    //validate name length
-    if (name.trim().length < 2) {
-      return sendError(res, 400, 'Name must be at least 2 characters long');
-    }
-
-    //validate password length
-    // SECURITY: Implement stronger password requirements (e.g., min 8 chars, mixed case, special chars)
-    if (password.length < 4) {
-      return sendError(res, 400, 'Password must be at least 4 characters long');
-    }
-
     //check if a user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -58,7 +42,11 @@ exports.register = async (req, res) => {
     //generate token
     const token = generateToken(user._id);
 
-    return sendSuccess(res, createAuthResponse(user, token), 'User registered successfully', null, 201);
+    return sendSuccess(res, {
+      data: createAuthResponse(user, token),
+      message: 'User registered successfully',
+      status: 201,
+    });
   } catch (error) {
     return handleValidationError(res, error, error.message || 'Registration failed');
   }
@@ -70,11 +58,6 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    //validate input
-    if (!email || !password) {
-      return sendError(res, 400, 'Please provide email and password');
-    }
 
     //find user and include password
     const user = await User.findOne({ email }).select('+password');
@@ -102,7 +85,10 @@ exports.login = async (req, res) => {
     //generate token
     const token = generateToken(user._id);
 
-    return sendSuccess(res, createAuthResponse(user, token), 'Login successful');
+    return sendSuccess(res, {
+      data: createAuthResponse(user, token),
+      message: 'Login successful',
+    });
   } catch (error) {
     return sendError(res, 500, 'Login failed', error);
   }
@@ -115,7 +101,7 @@ exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('cart.product');
 
-    return sendSuccess(res, user);
+    return sendSuccess(res, { data: user });
   } catch (error) {
     return sendError(res, 500, 'Error fetching user data', error);
   }

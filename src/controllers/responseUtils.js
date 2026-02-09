@@ -17,10 +17,11 @@ const sendError = (res, status, message, error) => {
 };
 
 /**
- * TODO: In the next major refactor, switch to named parameters: sendSuccess(res, { data, message, extra, status })
- * This will prevent "positional argument confusion" and make the API more maintainable.
+ * Send success response with named parameters
+ * @param {Object} res - Express response object
+ * @param {Object} options - Response options { data, message, extra, status }
  */
-const sendSuccess = (res, data, message, extra = null, status = 200) => {
+const sendSuccess = (res, { data, message, extra = null, status = 200 } = {}) => {
   const payload = {
     success: true,
     ...(message && { message }),

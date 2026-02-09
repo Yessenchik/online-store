@@ -9,9 +9,10 @@ const {
   cancelOrder,
 } = require('../controllers/orderController');
 const { protect, restrictTo } = require('../middleware/auth');
+const { orderValidation } = require('../middleware/validator');
 
 //all routes are protected
-router.post('/', protect, createOrder);
+router.post('/', protect, orderValidation, createOrder);
 router.get('/', protect, getMyOrders);
 router.get('/all', protect, restrictTo('admin'), getAllOrders);
 router.get('/:id', protect, getOrder);

@@ -37,7 +37,10 @@ exports.getProductReviews = async (req, res) => {
 
     const total = await Review.countDocuments({ product: productId });
 
-    return sendSuccess(res, reviews, null, buildPaginationMeta(reviews, total, pageNum, limitNum));
+    return sendSuccess(res, {
+      data: reviews,
+      extra: buildPaginationMeta(reviews, total, pageNum, limitNum),
+    });
   } catch (error) {
     return sendError(res, 500, 'Error fetching reviews', error);
   }
@@ -88,7 +91,11 @@ exports.createReview = async (req, res) => {
 
     const populatedReview = await Review.findById(review._id).populate('user', 'name').populate('product', 'name');
 
-    return sendSuccess(res, populatedReview, 'Review created successfully', null, 201);
+    return sendSuccess(res, {
+      data: populatedReview,
+      message: 'Review created successfully',
+      status: 201,
+    });
   } catch (error) {
     return handleValidationError(res, error, 'Error creating review');
   }
@@ -117,7 +124,7 @@ exports.updateReview = async (req, res) => {
       { new: true, runValidators: true }
     ).populate('user', 'name');
 
-    return sendSuccess(res, updatedReview, 'Review updated successfully');
+    return sendSuccess(res, { data: updatedReview, message: 'Review updated successfully' });
   } catch (error) {
     return handleValidationError(res, error, 'Error updating review');
   }
@@ -141,7 +148,7 @@ exports.deleteReview = async (req, res) => {
 
     await review.deleteOne();
 
-    return sendSuccess(res, {}, 'Review deleted successfully');
+    return sendSuccess(res, { message: 'Review deleted successfully' });
   } catch (error) {
     return sendError(res, 500, 'Error deleting review', error);
   }

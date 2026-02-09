@@ -1,9 +1,6 @@
 const mongoose = require('mongoose');
 const { constraints } = require('./modelUtils');
 
-// TODO: Refactor validation logic to use middleware for request data sanitization and validation.
-// Models should ideally only handle database-level data integrity.
-
 //compatible models schema
 const compatibleModelSchema = new mongoose.Schema(
   {

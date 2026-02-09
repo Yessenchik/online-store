@@ -1,9 +1,6 @@
 const mongoose = require('mongoose');
 const { generateOrderNumber, constraints, createRef } = require('./modelUtils');
 
-// TODO: Move complex request-level validations (e.g., address format, payment method checks)
-// to middleware to keep the model focused on data persistence.
-
 //embedded order item schema
 const orderItemSchema = new mongoose.Schema(
   {

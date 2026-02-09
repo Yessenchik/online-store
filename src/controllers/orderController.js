@@ -47,13 +47,7 @@ exports.createOrder = async (req, res) => {
     const { items, shippingAddress, paymentMethod, pricing } = req.body;
 
     // SECURITY: Sanitize pricing data from request body to ensure it matches product calculations
-    if (!items || items.length === 0) {
-      return sendError(res, 400, 'No order items provided');
-    }
-
-    if (!shippingAddress || !paymentMethod || !pricing) {
-      return sendError(res, 400, 'Missing order details');
-    }
+    //validate and prepare order items with product snapshots
 
     //validate and prepare order items with product snapshots
     const orderItems = [];
@@ -86,7 +80,11 @@ exports.createOrder = async (req, res) => {
       .populate('user', 'name email')
       .populate('items.product', 'name images');
 
-    return sendSuccess(res, populatedOrder, 'Order created successfully', null, 201);
+    return sendSuccess(res, {
+      data: populatedOrder,
+      message: 'Order created successfully',
+      status: 201,
+    });
   } catch (error) {
     return handleValidationError(res, error, 'Error creating order');
   }
@@ -114,7 +112,10 @@ exports.getMyOrders = async (req, res) => {
 
     const total = await Order.countDocuments(query);
 
-    return sendSuccess(res, orders, null, buildPaginationMeta(orders, total, pageNum, limitNum));
+    return sendSuccess(res, {
+      data: orders,
+      extra: buildPaginationMeta(orders, total, pageNum, limitNum),
+    });
   } catch (error) {
     return sendError(res, 500, 'Error fetching orders', error);
   }
@@ -138,7 +139,7 @@ exports.getOrder = async (req, res) => {
       return sendError(res, 403, 'Not authorized to view this order');
     }
 
-    return sendSuccess(res, order);
+    return sendSuccess(res, { data: order });
   } catch (error) {
     return sendError(res, 500, 'Error fetching order', error);
   }
@@ -167,7 +168,10 @@ exports.getAllOrders = async (req, res) => {
 
     const total = await Order.countDocuments(query);
 
-    return sendSuccess(res, orders, null, buildPaginationMeta(orders, total, pageNum, limitNum));
+    return sendSuccess(res, {
+      data: orders,
+      extra: buildPaginationMeta(orders, total, pageNum, limitNum),
+    });
   } catch (error) {
     return sendError(res, 500, 'Error fetching orders', error);
   }
@@ -209,7 +213,7 @@ exports.updateOrderStatus = async (req, res) => {
       return sendError(res, 404, 'Order not found');
     }
 
-    return sendSuccess(res, order, 'Order status updated successfully');
+    return sendSuccess(res, { data: order, message: 'Order status updated successfully' });
   } catch (error) {
     return handleValidationError(res, error, 'Error updating order status');
   }
@@ -246,7 +250,7 @@ exports.cancelOrder = async (req, res) => {
     order.cancelled_at = new Date();
     await order.save();
 
-    return sendSuccess(res, order, 'Order cancelled successfully');
+    return sendSuccess(res, { data: order, message: 'Order cancelled successfully' });
   } catch (error) {
     return sendError(res, 500, 'Error cancelling order', error);
   }

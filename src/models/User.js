@@ -35,7 +35,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      // TODO: Move complex email validation and sanitization to middleware
       validate: [validators.email.regex, validators.email.message],
     },
     password: {

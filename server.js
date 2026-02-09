@@ -1,26 +1,38 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
+const connectDB = require('./src/config/db');
 const app = require('./src/app');
 
-// TODO: Implement express-rate-limit
-// TODO: Consider using sanitize-html for deeper input cleaning
-// TODO: Consider adding a dedicated validation middleware (e.g., Joi or express-validator) for API input.
-
-// TODO: Consider moving database connection and environment loading to a dedicated src/config directory
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB Connected Successfully'))
-  .catch((err) => {
-    console.error('MongoDB Connection Error:', err);
-    process.exit(1);
-  });
+// Connect to Database
+connectDB();
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API: http://localhost:${PORT}/api`);
 });
 
-// TODO: Implement graceful shutdown for MongoDB connection and server
-// process.on('SIGTERM', () => { ... });
-// process.on('SIGINT', () => { ... });
+// Handle graceful shutdown
+const gracefulShutdown = async () => {
+  console.log('Starting graceful shutdown...');
+  server.close(async () => {
+    console.log('HTTP server closed');
+    try {
+      const mongoose = require('mongoose');
+      await mongoose.connection.close();
+      console.log('MongoDB connection closed');
+      process.exit(0);
+    } catch (err) {
+      console.error('Error during shutdown:', err);
+      process.exit(1);
+    }
+  });
+
+  // Force shutdown after 10s
+  setTimeout(() => {
+    console.error('Could not close connections in time, forcefully shutting down');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);

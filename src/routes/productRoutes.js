@@ -11,16 +11,18 @@ const {
   deleteProduct,
 } = require('../controllers/productController');
 const { protect, restrictTo, optionalAuth } = require('../middleware/auth');
+const { sanitizeBody } = require('../middleware/sanitizer');
+const { productValidation } = require('../middleware/validator');
 
-// TODO: Add validation middleware for product creation/updates
+// validation TODO removed as it will be handled in a separate commit or part of this one if small
 
 //public routes
 router.get('/', optionalAuth, getProducts);
 router.get('/:id', getProduct);
 
 //admin routes
-router.post('/', protect, restrictTo('admin'), createProduct);
-router.put('/:id', protect, restrictTo('admin'), updateProduct);
+router.post('/', protect, restrictTo('admin'), productValidation, sanitizeBody(['description']), createProduct);
+router.put('/:id', protect, restrictTo('admin'), productValidation, sanitizeBody(['description']), updateProduct);
 router.patch('/:id/stock', protect, restrictTo('admin'), updateStock);
 router.patch('/:id/tags', protect, restrictTo('admin'), addTag);
 router.delete('/:id/tags/:tag', protect, restrictTo('admin'), removeTag);

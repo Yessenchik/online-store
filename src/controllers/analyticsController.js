@@ -47,7 +47,7 @@ exports.getProductStats = async (req, res) => {
       },
     ]);
 
-    return sendSuccess(res, stats);
+    return sendSuccess(res, { data: stats });
   } catch (error) {
     return sendError(res, 500, 'Error fetching product statistics', error);
   }
@@ -90,7 +90,7 @@ exports.getTopRatedProducts = async (req, res) => {
       },
     ]);
 
-    return sendSuccess(res, topProducts, null, { count: topProducts.length });
+    return sendSuccess(res, { data: topProducts, extra: { count: topProducts.length } });
   } catch (error) {
     return sendError(res, 500, 'Error fetching top-rated products', error);
   }
@@ -180,8 +180,10 @@ exports.getSalesAnalytics = async (req, res) => {
     ]);
 
     return sendSuccess(res, {
-      summary: summary[0] || {},
-      topProducts: salesData,
+      data: {
+        summary: summary[0] || {},
+        topProducts: salesData,
+      },
     });
   } catch (error) {
     return sendError(res, 500, 'Error fetching sales analytics', error);
@@ -219,7 +221,7 @@ exports.getSalesTimeSeries = async (req, res) => {
       },
     ]);
 
-    return sendSuccess(res, series);
+    return sendSuccess(res, { data: series });
   } catch (error) {
     return sendError(res, 500, 'Error fetching sales time series', error);
   }
@@ -329,8 +331,10 @@ exports.getUserOrderHistory = async (req, res) => {
     ]);
 
     return sendSuccess(res, {
-      statistics: userStats[0] || {},
-      orders: orderHistory,
+      data: {
+        statistics: userStats[0] || {},
+        orders: orderHistory,
+      },
     });
   } catch (error) {
     return sendError(res, 500, 'Error fetching user order history', error);
@@ -358,9 +362,11 @@ exports.getReviewStats = async (req, res) => {
     const averageRating = stats.reduce((sum, stat) => sum + stat._id * stat.count, 0) / totalReviews || 0;
 
     return sendSuccess(res, {
-      totalReviews,
-      averageRating: Math.round(averageRating * 10) / 10,
-      distribution: stats,
+      data: {
+        totalReviews,
+        averageRating: Math.round(averageRating * 10) / 10,
+        distribution: stats,
+      },
     });
   } catch (error) {
     return sendError(res, 500, 'Error fetching review statistics', error);
