@@ -1,6 +1,25 @@
 const { body, validationResult } = require('express-validator');
 const { sendError } = require('../controllers/responseUtils');
-const { constraints } = require('../models/modelUtils');
+
+const validators = {
+  email: {
+    regex: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/,
+    message: 'Please provide a valid email',
+  },
+  phone: {
+    regex: /^\+?[1-9]\d{1,14}$/,
+    message: 'Please provide a valid phone number',
+  },
+};
+
+const constraints = {
+  minName: 2,
+  minPassword: 6,
+  minDescription: 10,
+  maxComment: 1000,
+  maxTitle: 100,
+  maxNotes: 500,
+};
 
 /**
  * Middleware to validate request and handle errors
@@ -31,8 +50,8 @@ const registerValidation = [
     .trim()
     .notEmpty()
     .withMessage('Email is required')
-    .isEmail()
-    .withMessage('Please provide a valid email')
+    .matches(validators.email.regex)
+    .withMessage(validators.email.message)
     .normalizeEmail(),
   body('password')
     .notEmpty()
@@ -47,8 +66,8 @@ const loginValidation = [
     .trim()
     .notEmpty()
     .withMessage('Email is required')
-    .isEmail()
-    .withMessage('Please provide a valid email')
+    .matches(validators.email.regex)
+    .withMessage(validators.email.message)
     .normalizeEmail(),
   body('password').notEmpty().withMessage('Password is required'),
   validate,
@@ -139,6 +158,8 @@ const orderValidation = [
 ];
 
 module.exports = {
+  validators,
+  constraints,
   registerValidation,
   loginValidation,
   productValidation,

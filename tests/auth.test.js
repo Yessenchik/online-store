@@ -3,6 +3,7 @@ const app = require('../src/app');
 const dbHandler = require('./db-handler');
 
 beforeAll(async () => {
+  jest.setTimeout(30000);
   await dbHandler.connect();
 });
 

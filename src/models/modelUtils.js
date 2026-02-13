@@ -1,22 +1,4 @@
-const validators = {
-  email: {
-    regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    message: 'Please provide a valid email',
-  },
-  phone: {
-    regex: /^\+?[1-9]\d{1,14}$/,
-    message: 'Please provide a valid phone number',
-  },
-};
-
-const constraints = {
-  minName: 2,
-  minPassword: 4,
-  minDescription: 10,
-  maxComment: 1000,
-  maxTitle: 100,
-  maxNotes: 500,
-};
+const { validators, constraints } = require('../middleware/validator');
 
 //generate unique order number
 const generateOrderNumber = () => {

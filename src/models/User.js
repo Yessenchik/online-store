@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      validate: [validators.email.regex, validators.email.message],
+      // validate: [validators.email.regex, validators.email.message], // Validated in middleware
     },
     password: {
       type: String,

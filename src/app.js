@@ -23,7 +23,29 @@ app.use(
         scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://fonts.googleapis.com', "'unsafe-inline'"],
         fontSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://fonts.gstatic.com'],
-        imgSrc: ["'self'", 'data:', 'blob:', 'https://picsum.photos', 'https://fastly.picsum.photos'],
+        imgSrc: [
+          "'self'",
+          'data:',
+          'blob:',
+          'https://picsum.photos',
+          'https://fastly.picsum.photos',
+          'https://encrypted-tbn0.gstatic.com',
+          'https://via.placeholder.com',
+          'https://m.media-amazon.com', // Amazon Media
+          'https://images-na.ssl-images-amazon.com', // Amazon Static
+          'https://www.dropguys.com',
+          'https://capraleather.com', // Capra Leather
+          'https://media.tatacroma.com', // Croma
+          'https://my-apple-store.ru', // Apple Store RU
+          'https://www.esrtech.com', // ESR Tech
+          'https://i5.walmartimages.com', // Walmart
+          'https://images-cdn.ubuy.co.in', // Ubuy
+          'https://images.mobilefun.co.uk', // MobileFun
+          'https://komodoty.com', // Komodoty
+          'https://image-cdn.moss.com.hk', // Moss HK
+          'https://ezeller.com', // Ezeller
+          'https://ezeller.com/wp-content/uploads/',
+        ],
         connectSrc: ["'self'"],
       },
     },
