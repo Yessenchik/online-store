@@ -7,8 +7,9 @@ const validators = {
     message: 'Please provide a valid email',
   },
   phone: {
-    regex: /^\+?[1-9]\d{1,14}$/,
-    message: 'Please provide a valid phone number',
+    // Validates +7701... or 8701... or 7701... (10-11 digits)
+    regex: /^(?:\+7|8|7)(7\d{9})$/,
+    message: 'Please provide a valid Kazakhstan phone number (e.g., +7 701 123 4567)',
   },
 };
 
