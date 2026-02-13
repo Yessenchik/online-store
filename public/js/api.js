@@ -51,8 +51,8 @@ const api = {
     }
 
     //validate password length
-    if (data.password.length < 4) {
-      throw new Error('Password must be at least 4 characters long');
+    if (data.password.length < 6) {
+      throw new Error('Password must be at least 6 characters long');
     }
 
     const response = await fetch(`${API_BASE_URL}/auth/register`, {

@@ -76,8 +76,8 @@ async function handleRegister(e) {
     return;
   }
 
-  if (!password || password.length < 4) {
-    showAlert('Password must be at least 4 characters long', 'error');
+  if (!password || password.length < 6) {
+    showAlert('Password must be at least 6 characters long', 'error');
     return;
   }
 
