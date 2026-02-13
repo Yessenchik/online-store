@@ -2,15 +2,8 @@
 
 A premium, modern e-commerce platform specializing in phone cases. Built with a focus on security, performance, and a clean user experience.
 
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
-![Jest](https://img.shields.io/badge/-Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)
 
----
-
-## 🚀 Features
+## Features
 
 ### Frontend
 
@@ -36,7 +29,7 @@ A premium, modern e-commerce platform specializing in phone cases. Built with a 
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Server**: Node.js & Express.js
 - **Database**: MongoDB with Mongoose ODM
@@ -48,7 +41,7 @@ A premium, modern e-commerce platform specializing in phone cases. Built with a 
 
 ---
 
-## 📦 Project Structure
+## Project Structure
 
 ```text
 ├── public/             # Client-side assets (JS, CSS)
@@ -68,7 +61,7 @@ A premium, modern e-commerce platform specializing in phone cases. Built with a 
 
 ---
 
-## 🚦 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -105,7 +98,7 @@ A premium, modern e-commerce platform specializing in phone cases. Built with a 
 
 ---
 
-## 🧪 Testing & Quality
+## Testing & Quality
 
 The project includes a comprehensive suite of tests covering authentication, ordering, and security vulnerabilities.
 
@@ -122,7 +115,7 @@ npm run format     # or: just format
 
 ---
 
-## 🛠️ Justfile (Optional)
+## Justfile (Optional)
 
 If you have `just` installed, you can use the following shorthand commands:
 
@@ -134,7 +127,7 @@ If you have `just` installed, you can use the following shorthand commands:
 
 ---
 
-## 🛡️ Security Implementation
+## Security Implementation
 
 This application implements several security best practices:
 
@@ -146,6 +139,9 @@ This application implements several security best practices:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the ISC License.
+
+## Our server is deployed on render
+https://online-store-dgs8.onrender.com/
